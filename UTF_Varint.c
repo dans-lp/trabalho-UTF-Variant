@@ -14,8 +14,9 @@ int main(void){
    int res = 0;
 
    FILE *fin = openFile("/mnt/d/Trabalhos PUC/Software Basico/TrabalhoUTF-Variant/Unicode_pequeno.txt","rb");
-   //FILE *fout = openFile("/mnt/d/Trabalhos PUC/Software Basico/TrabalhoUTF-Variant/saida_teste.txt","wb");
-   PrintContent_test(fin);
+   FILE *fout = openFile("/mnt/d/Trabalhos PUC/Software Basico/TrabalhoUTF-Variant/saida_teste.txt","wb");
+   res = utf_varint(fin,fout);
+   fclose(fout);
    fclose(fin);
 
    printf("\n ---------------> fim: %d <--------------- \n",res);
@@ -39,18 +40,14 @@ void PrintContent_test(FILE * f_test){
    printf("\n ------------------> leitura do arquivo <------------------ \n ");
    unsigned char c;
    printf("\nChar <-> UTF8\n_______________\n");
-   
 
    do
    {
       c = getc(f_test);
       printf("   %c <-> %02X \n", c, c );
-      
+
       if(feof(f_test)) break;
    } while (1); 
-   
-
-
 
    
 }
