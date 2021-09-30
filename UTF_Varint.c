@@ -4,10 +4,18 @@
 //---------------------------------------------->header<----------------------------------------------
 //-------------->apena fazendo isso pois o .h do trabalho não pode ser modificado<--------------------
 
+//conversão de UTF-8 para Varint
 int utf_varint(FILE *arq_entrada, FILE *arq_saida);
+
+//conversão de Varint para UTF-8
 int varint_utf(FILE *arq_entrada, FILE *arq_saida);
+
+//função de abertura do arquivo
 FILE *openFile(char *path, char *mode);
+
+//função exibe na tela conteúdo do arquivo
 void PrintContent_test(FILE * f_test);
+
 //---------------------------------------------->main<-------------------------------------------------
 
 int main(void){
@@ -25,16 +33,6 @@ int main(void){
 
 //----------------------------------------------------------------------------------------------------
 
-/*
-void dump (void *p, int n) {
-	unsigned char *p1 = p;
-	while (n--) {
-		printf("%p - %02x\n", p1, *p1);
-		p1++;
-	}
-}
-*/
-
 
 void PrintContent_test(FILE * f_test){
    printf("\n ------------------> leitura do arquivo <------------------ \n ");
@@ -48,10 +46,7 @@ void PrintContent_test(FILE * f_test){
 
       if(feof(f_test)) break;
    } while (1); 
-
-   
 }
-
 
 
 FILE *openFile(char *path, char *mode)
@@ -62,15 +57,38 @@ FILE *openFile(char *path, char *mode)
       printf("arquivo %s não pode ser aberto\n",path);
       exit(1);   
    }
-
    return f;
 }
 
 int utf_varint(FILE *arq_entrada, FILE *arq_saida){
    
-
    PrintContent_test(arq_entrada);
+
+   printf("\n------------------> inicio da função <------------------\n");
+   unsigned char cUTF;
+
+   printf("   caracter %c <-> %02X \n", cUTF, cUTF );
+  
+   //loop leitura do arquivo
    
+    do
+   {
+      cUTF = getc(arq_entrada);
+
+      if ((cUTF>>7) != 0x00)
+      {
+            
+      }
+      else
+      {
+         
+      }
+      
+
+      if(feof(arq_entrada)) break;
+   } while (1);   
 
    return 0;
 }
+
+
