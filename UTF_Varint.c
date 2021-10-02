@@ -62,31 +62,37 @@ FILE *openFile(char *path, char *mode)
 
 int utf_varint(FILE *arq_entrada, FILE *arq_saida){
    
-   PrintContent_test(arq_entrada);
+   //PrintContent_test(arq_entrada);
 
    printf("\n------------------> inicio da função <------------------\n");
-   unsigned char cUTF;
-
-   printf("   caracter %c <-> %02X \n", cUTF, cUTF );
+   unsigned char byteCurrent;
+   //unsigned char byteBefore = 0x00;
+   //printf("   caracter %c <-> %02X \n", cUTF, cUTF );
   
    //loop leitura do arquivo
    
-    do
-   {
-      cUTF = getc(arq_entrada);
 
-      if ((cUTF>>7) != 0x00)
+   
+   for (byteCurrent = getc(arq_entrada); !feof(arq_entrada); byteCurrent = getc(arq_entrada))
+   {
+      printf("\nteste byte loop: %02X \n",byteCurrent);  
+      //printf("\nteste AND byte loop: %02X\n",(byteCurrent & 0x80));
+      int i = 0;
+      
+      while ((byteCurrent & 0x80) != 0x00)
       {
-            
-      }
-      else
-      {
-         
+         printf("\n >>>>>> MSByte diferente de zero -> nº de 1s: %d <<<<<<<<<\n",i);
+         byteCurrent = byteCurrent << 1;
+         i++;
+         //break;
       }
       
+      byteCurrent = byteCurrent >> i;
 
-      if(feof(arq_entrada)) break;
-   } while (1);   
+   }
+
+
+
 
    return 0;
 }
