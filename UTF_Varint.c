@@ -69,7 +69,8 @@ void write_varint(unsigned char *ByteSeq, int lenght){
    printf("\n>>>>>> inicio da sequencia pós corte <<<<<<<<\n");
    for (int i = 0; i < lenght; i++)
    {
-      printf("byte: %02X ",ByteSeq[i]);
+      
+      //printf("byte: %02X ",ByteSeq[i]);
    }
    
    printf("\n--------------------------------------------------------------\n\n");
@@ -111,7 +112,6 @@ int utf_varint(FILE *arq_entrada, FILE *arq_saida){
          
          if (i>1)
          { 
-            //printf(">>>>>> Início da sequência de bytes! <<<<<<<<<\n");
             SeqLenght = i;
             index = 0;    
          }
@@ -120,6 +120,7 @@ int utf_varint(FILE *arq_entrada, FILE *arq_saida){
          
          if (index == SeqLenght - 1)
          {
+            byteBefore = 0x00;
             write_varint(byteSeq,SeqLenght);
             index = 0;
          }
