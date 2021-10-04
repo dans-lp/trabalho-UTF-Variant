@@ -17,7 +17,7 @@ FILE *openFile(char *path, char *mode);
 void PrintContent_test(FILE * f_test);
 
 //função converte sequencia de bytes em Hex para Varint e escreve no arquivo
-void write_varint(unsigned char *ByteSeq);
+void write_varint(unsigned char *ByteSeq, int lenght);
 
 //---------------------------------------------->main<-------------------------------------------------
 
@@ -65,8 +65,15 @@ FILE *openFile(char *path, char *mode)
 }
 
 
-
-
+void write_varint(unsigned char *ByteSeq, int lenght){
+   printf("\n>>>>>> inicio da sequencia pós corte <<<<<<<<\n");
+   for (int i = 0; i < lenght; i++)
+   {
+      printf("byte: %02X ",ByteSeq[i]);
+   }
+   
+   printf("\n--------------------------------------------------------------\n\n");
+}
 
 
 
@@ -75,18 +82,20 @@ int utf_varint(FILE *arq_entrada, FILE *arq_saida){
    printf("\n------------------> inicio da função <------------------\n");
    unsigned char byteCurrent;
    unsigned char byteSeq[4];
+   unsigned char byteBefore = 0x00;
+   int SeqLenght;
+   int index;
    //printf("   caracter %c <-> %02X \n", cUTF, cUTF );
       
 
    //loop leitura do arquivo
    for (byteCurrent = getc(arq_entrada); !feof(arq_entrada); byteCurrent = getc(arq_entrada))
    {
-      printf("\nteste byte entrada loop: %02X \n",byteCurrent);  
-      int SeqNumber = 0;
+      printf("\nbyte entrada loop: %02X \n",byteCurrent);  
 
       if (byteCurrent >= 0x80)
       {
-         printf(">>>>>> este byte possui continuação! <<<<<<<<<\n");
+         printf("----> maior que 128bits !!!");
          int i = 0;
 
          while (byteCurrent >= 0x80)
@@ -94,26 +103,33 @@ int utf_varint(FILE *arq_entrada, FILE *arq_saida){
             byteCurrent <<= 1;
             i++;
          }
-         printf(">>>>>> nº de 1s: %d <<<<<<<<<\n\n",i);
+         printf(" ----> nº de 1s: %d \n",i);
          byteCurrent >>= i;
 
-         byteSeq[SeqNumber] = byteCurrent;
-         SeqNumber++;
-         if (i > 1)
+         byteCurrent |= (byteBefore << 6); 
+         byteBefore = (byteCurrent & 0x03);
+         
+         if (i>1)
+         { 
+            //printf(">>>>>> Início da sequência de bytes! <<<<<<<<<\n");
+            SeqLenght = i;
+            index = 0;    
+         }
+         
+         byteSeq[index] = (byteCurrent);
+         
+         if (index == SeqLenght - 1)
          {
-            for (int k = 0; k < (SeqNumber - 1); k++)
-            {
-               byteSeq[k] &= (byteSeq[k+1] << 6);
-               
-               if (k>1) {byteSeq[k] >>= 2;}
-               fwrite(&byteSeq[k],sizeof(unsigned char),1,arq_saida);
-            }
-            fwrite(&byteSeq[3], sizeof(unsigned char),1,arq_saida);
-            SeqNumber = 0;
+            write_varint(byteSeq,SeqLenght);
+            index = 0;
+         }
+         else
+         {
+            byteSeq[index] >>= 2;
+            index++;
          }
       }
-
-      else {fwrite(&byteCurrent,sizeof(unsigned char), 1, arq_saida);}  
+      else { fwrite(&byteCurrent,sizeof(unsigned char), 1, arq_saida); }  
    }
    return 0;
 }
