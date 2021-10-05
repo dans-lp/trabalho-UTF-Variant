@@ -17,7 +17,7 @@ FILE *openFile(char *path, char *mode);
 void PrintContent_test(FILE * f_test);
 
 //função converte sequencia de bytes em Hex para Varint e escreve no arquivo
-void write_varint(unsigned char *ByteSeq, int lenght);
+void write_SeqVarint(unsigned char *ByteSeq, int lenght, FILE* arq_saida);
 
 //---------------------------------------------->main<-------------------------------------------------
 
@@ -65,14 +65,25 @@ FILE *openFile(char *path, char *mode)
 }
 
 
-void write_varint(unsigned char *ByteSeq, int lenght){
-   printf("\n>>>>>> inicio da sequencia pós corte <<<<<<<<\n");
-   for (int i = 0; i < lenght; i++)
-   {
+void write_SeqVarint(unsigned char *ByteSeq, int lenght, FILE* arq_saida){
+   unsigned char msb, flag;
+
+   printf("\n>>>>>> inicio da sequencia varintf <<<<<<<<\n");
+   for (int i = lenght -1; i >= 0; i--)
+   {  
+      msb = (ByteSeq[i]>>7);
+      if (i  = lenght - 1)
+      {
+         /* code */
+      }
+      else
+      {
+         /* code */
+      }
       
-      //printf("byte: %02X ",ByteSeq[i]);
+      printf("byte: %02X ",ByteSeq[i]);
+      fwrite(ByteSeq[i],sizeof(unsigned char), 1, arq_saida);
    }
-   
    printf("\n--------------------------------------------------------------\n\n");
 }
 
@@ -121,7 +132,7 @@ int utf_varint(FILE *arq_entrada, FILE *arq_saida){
          if (index == SeqLenght - 1)
          {
             byteBefore = 0x00;
-            write_varint(byteSeq,SeqLenght);
+            write_SeqVarint(byteSeq,SeqLenght,arq_saida);
             index = 0;
          }
          else
