@@ -66,23 +66,29 @@ FILE *openFile(char *path, char *mode)
 
 
 void write_SeqVarint(unsigned char *ByteSeq, int lenght, FILE* arq_saida){
-   unsigned char msb, flag;
+   int finalIndex = lenght - 1;
+   unsigned char msb1 = ByteSeq[finalIndex] >> 7;
+   unsigned char msb2; 
+   unsigned char flag = 0x80;
 
    printf("\n>>>>>> inicio da sequencia varintf <<<<<<<<\n");
-   for (int i = lenght -1; i >= 0; i--)
+   printf("\ntamanho da sequencia: %d\n",lenght);
+   for (int i = finalIndex; i >= 0; i--)
    {  
-      msb = (ByteSeq[i]>>7);
-      if (i  = lenght - 1)
-      {
-         /* code */
-      }
+      
+      msb2 = ByteSeq[i] >> 7;
+      
+      if (i == 0 ) { flag = 0x00; }
+      
+      if (i == lenght - 1) { ByteSeq[i] |= flag; }
       else
       {
-         /* code */
+         ByteSeq[i] <<= 1;
+         ByteSeq[i] |= (msb1 | flag);
       }
-      
+      msb1 = msb2;
+      fwrite(&ByteSeq[i],sizeof(unsigned char), 1, arq_saida);
       printf("byte: %02X ",ByteSeq[i]);
-      fwrite(ByteSeq[i],sizeof(unsigned char), 1, arq_saida);
    }
    printf("\n--------------------------------------------------------------\n\n");
 }
@@ -96,7 +102,7 @@ int utf_varint(FILE *arq_entrada, FILE *arq_saida){
    unsigned char byteSeq[4];
    unsigned char byteBefore = 0x00;
    int SeqLenght;
-   int index;
+   int index = 0;
    //printf("   caracter %c <-> %02X \n", cUTF, cUTF );
       
 
@@ -117,16 +123,11 @@ int utf_varint(FILE *arq_entrada, FILE *arq_saida){
          }
          printf(" ----> nº de 1s: %d \n",i);
          byteCurrent >>= i;
-
          byteCurrent |= (byteBefore << 6); 
          byteBefore = (byteCurrent & 0x03);
          
-         if (i>1)
-         { 
-            SeqLenght = i;
-            index = 0;    
-         }
-         
+         if (i>1) { SeqLenght = i; }
+
          byteSeq[index] = (byteCurrent);
          
          if (index == SeqLenght - 1)
