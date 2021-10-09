@@ -2,7 +2,7 @@
 #include<stdlib.h>
 
 //---------------------------------------------->header<----------------------------------------------
-//-------------->apena fazendo isso pois o .h do trabalho não pode ser modificado<--------------------
+//--------->apenas fazendo isso pois não sei se o .h do trabalho não pode ser modificado<-------------
 
 //conversão de UTF-8 para Varint
 int utf_varint(FILE *arq_entrada, FILE *arq_saida);
@@ -19,6 +19,8 @@ void PrintContent_test(FILE * f_test);
 //função converte sequencia de bytes em Hex para Varint e escreve no arquivo
 void write_SeqVarint(unsigned char *ByteSeq, int lenght, FILE* arq_saida);
 
+//função alinha os bits mais significantes no array de bytes advintos de varint
+unsigned char *alignSeq(unsigned char *ByteSeq,int lenght);
 //---------------------------------------------->main<-------------------------------------------------
 
 int main(void){
@@ -64,7 +66,6 @@ FILE *openFile(char *path, char *mode)
    return f;
 }
 
-
 void write_SeqVarint(unsigned char *ByteSeq, int lenght, FILE* arq_saida){
    int finalIndex = lenght - 1;
    unsigned char msb1 = ByteSeq[finalIndex] >> 7;
@@ -74,8 +75,7 @@ void write_SeqVarint(unsigned char *ByteSeq, int lenght, FILE* arq_saida){
    printf("\n>>>>>> inicio da sequencia varintf <<<<<<<<\n");
    printf("\ntamanho da sequencia: %d\n",lenght);
    for (int i = finalIndex; i >= 0; i--)
-   {  
-      
+   {        
       msb2 = ByteSeq[i] >> 7;
       
       if (i == 0 ) { flag = 0x00; }
@@ -103,9 +103,7 @@ int utf_varint(FILE *arq_entrada, FILE *arq_saida){
    unsigned char byteBefore = 0x00;
    int SeqLenght;
    int index = 0;
-   //printf("   caracter %c <-> %02X \n", cUTF, cUTF );
-      
-
+   
    //loop leitura do arquivo
    for (byteCurrent = getc(arq_entrada); !feof(arq_entrada); byteCurrent = getc(arq_entrada))
    {
@@ -147,3 +145,47 @@ int utf_varint(FILE *arq_entrada, FILE *arq_saida){
    return 0;
 }
 
+unsigned char *alignSeq(unsigned char *ByteSeq,int lenght){
+   unsigned char lsb;
+   unsigned char msb = 0x00;
+   for (int i = lenght - 1; i >= 0; i--)
+   {
+      lsb = ByteSeq[i] & 0x01;
+      ByteSeq[i] >>= 1;
+      ByteSeq[i] |= msb; 
+      msb = (lsb<<7);
+   }
+   
+
+
+
+}
+
+int varint_utf(FILE *arq_entrada, FILE *arq_saida){
+   printf("\n------------------> inicio da função 2 <------------------\n");
+   unsigned char byteCurrent;
+   unsigned char byteSeq[4];
+   unsigned char msbBefore;
+   int SeqLenght = 0;
+   int index = 0;
+   
+   for (byteCurrent = getc(arq_entrada); !feof(arq_entrada); byteCurrent = getc(arq_entrada))
+   {
+      
+      if(byteCurrent >= 0x80)
+      {
+         printf("----> maior que 128bits !!!");
+         byteSeq[index] = byteCurrent & 0x7F;
+         index++;
+      }
+      else if(index =! 0)
+      {
+         byteSeq[index] = byteCurrent;
+         index = 0;
+         unsigned char *alignSeq(ByteSeq, index);
+         //chama função que converte array de hex em UTF-8
+      }
+      else { fwrite(&byteCurrent,sizeof(unsigned char), 1, arq_saida); } 
+
+   return 0;
+}
