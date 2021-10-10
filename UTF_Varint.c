@@ -20,20 +20,24 @@ void PrintContent_test(FILE * f_test);
 void write_SeqVarint(unsigned char *ByteSeq, int lenght, FILE* arq_saida);
 
 //função alinha os bits mais significantes no array de bytes advintos de varint
-unsigned char *alignSeq(unsigned char *ByteSeq,int lenght);
+void alignSeq(unsigned char *ByteSeq,int lenght);
 //---------------------------------------------->main<-------------------------------------------------
 
 int main(void){
    int res = 0;
 
-   FILE *fin = openFile("/mnt/d/Trabalhos PUC/Software Basico/TrabalhoUTF-Variant/Unicode_pequeno.txt","rb");
+   //FILE *fin1 = openFile("/mnt/d/Trabalhos PUC/Software Basico/TrabalhoUTF-Variant/Unicode_pequeno.txt","rb");
+   FILE *fin2 = openFile("/mnt/d/Trabalhos PUC/Software Basico/TrabalhoUTF-Variant/var_peq","rb");
    FILE *fout = openFile("/mnt/d/Trabalhos PUC/Software Basico/TrabalhoUTF-Variant/saida_teste.txt","wb");
    //PrintContent_test(fin);
-   res = utf_varint(fin,fout);
-   fclose(fout);
-   fclose(fin);
+   //res = utf_varint(fin,fout);
+   //printf("\n ---------------> fim função 1: %d <--------------- \n",res);
+   
+   res = varint_utf(fin2,fout);
+   printf("\n ---------------> fim 2: %d <--------------- \n",res);
 
-   printf("\n ---------------> fim: %d <--------------- \n",res);
+   fclose(fout);
+   fclose(fin2);
    return 0;
 }
 
@@ -145,47 +149,47 @@ int utf_varint(FILE *arq_entrada, FILE *arq_saida){
    return 0;
 }
 
-unsigned char *alignSeq(unsigned char *ByteSeq,int lenght){
+void alignSeq(unsigned char *ByteSeq,int lenght){
    unsigned char lsb;
    unsigned char msb = 0x00;
-   for (int i = lenght - 1; i >= 0; i--)
+   printf("sequencia em hex(invertido): ");
+   for (int i = lenght; i >= 0; i--)
    {
+      
       lsb = ByteSeq[i] & 0x01;
-      ByteSeq[i] >>= 1;
+
+      if(i != 0){ ByteSeq[i] >>= 1; } 
+      
       ByteSeq[i] |= msb; 
       msb = (lsb<<7);
+      printf("%02X ",ByteSeq[i]);
    }
-   
-
-
-
 }
 
 int varint_utf(FILE *arq_entrada, FILE *arq_saida){
    printf("\n------------------> inicio da função 2 <------------------\n");
    unsigned char byteCurrent;
    unsigned char byteSeq[4];
-   unsigned char msbBefore;
-   int SeqLenght = 0;
    int index = 0;
    
    for (byteCurrent = getc(arq_entrada); !feof(arq_entrada); byteCurrent = getc(arq_entrada))
    {
-      
+      printf("\n\nbyte da vez: %02X\n",byteCurrent);
       if(byteCurrent >= 0x80)
       {
-         printf("----> maior que 128bits !!!");
+         printf(" ----> maior que 128bits !!!\n");
          byteSeq[index] = byteCurrent & 0x7F;
          index++;
       }
-      else if(index =! 0)
+      else if(index != 0)
       {
          byteSeq[index] = byteCurrent;
+         printf(" -----> byte final do array\n");
+         alignSeq(byteSeq, index);
          index = 0;
-         unsigned char *alignSeq(ByteSeq, index);
          //chama função que converte array de hex em UTF-8
       }
       else { fwrite(&byteCurrent,sizeof(unsigned char), 1, arq_saida); } 
-
+   }
    return 0;
 }
