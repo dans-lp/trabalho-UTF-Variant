@@ -16,11 +16,15 @@ FILE *openFile(char *path, char *mode);
 //função exibe na tela conteúdo do arquivo
 void PrintContent_test(FILE * f_test);
 
-//função converte sequencia de bytes em Hex para Varint e escreve no arquivo
+//função converte sequencia de bytes em Hex para Varint e escreve no arquivo de saída
 void write_SeqVarint(unsigned char *ByteSeq, int lenght, FILE* arq_saida);
 
 //função alinha os bits mais significantes no array de bytes advintos de varint
 void alignSeq(unsigned char *ByteSeq,int lenght);
+
+//função converte array de bytes em Hex para UTF-8 e escreve no arquivo de saída
+void write_SeqUTF(unsigned char *ByteSeq, int lenght, FILE* arq_saida);
+
 //---------------------------------------------->main<-------------------------------------------------
 
 int main(void){
@@ -101,7 +105,7 @@ void write_SeqVarint(unsigned char *ByteSeq, int lenght, FILE* arq_saida){
 
 int utf_varint(FILE *arq_entrada, FILE *arq_saida){
    
-   printf("\n------------------> inicio da função <------------------\n");
+   printf("\n------------------> inicio da função UTF <------------------\n");
    unsigned char byteCurrent;
    unsigned char byteSeq[4];
    unsigned char byteBefore = 0x00;
@@ -154,8 +158,7 @@ void alignSeq(unsigned char *ByteSeq,int lenght){
    unsigned char msb = 0x00;
    printf("sequencia em hex(invertido): ");
    for (int i = lenght; i >= 0; i--)
-   {
-      
+   {  
       lsb = ByteSeq[i] & 0x01;
 
       if(i != 0){ ByteSeq[i] >>= 1; } 
@@ -165,6 +168,47 @@ void alignSeq(unsigned char *ByteSeq,int lenght){
       printf("%02X ",ByteSeq[i]);
    }
 }
+
+void write_SeqUTF(unsigned char *ByteSeq, int lenght, FILE* arq_saida){
+   unsigned char next;
+   unsigned char signSeq = 0x80;
+   unsigned char last = 0x00;
+   printf("\n\n teste tamanho do array: %d\n",lenght);
+   unsigned char end = 0x00;
+   
+
+   for (int i = 0, k = 2; i <= lenght; i++, k+=2)
+   {
+      next = ByteSeq[i] >> (8-k);
+      if (i != 0)
+      {
+         
+         ByteSeq[i] <<= (k-2);
+         ByteSeq[i] |= last;  
+      }
+      ByteSeq[i] &= 0x3F;
+      ByteSeq[i] |= signSeq;
+      last = next;
+      
+      printf("index: %d - %02X\n", i,ByteSeq[i]);
+
+   }
+   printf("oq tem no next final: %02X\n\n",next);
+   
+   if( next != 0x00 || ByteSeq[lenght] >= end ) { lenght += 1; }
+   end = 0xF0 << (4 - (lenght+1));
+   ByteSeq[lenght] = next | end;
+
+   for (int j = lenght; j >= 0; j--)
+   {
+       printf("teste UTF -> index: %d - %02X\n", j,ByteSeq[j]);
+   }
+   
+}
+
+
+
+
 
 int varint_utf(FILE *arq_entrada, FILE *arq_saida){
    printf("\n------------------> inicio da função 2 <------------------\n");
@@ -186,8 +230,9 @@ int varint_utf(FILE *arq_entrada, FILE *arq_saida){
          byteSeq[index] = byteCurrent;
          printf(" -----> byte final do array\n");
          alignSeq(byteSeq, index);
+         if(byteSeq[index] == 0x00) { index -= 1;}
+         write_SeqUTF(byteSeq,index,arq_saida);
          index = 0;
-         //chama função que converte array de hex em UTF-8
       }
       else { fwrite(&byteCurrent,sizeof(unsigned char), 1, arq_saida); } 
    }
